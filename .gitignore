@@ -1,6 +1,6 @@
 node_modules
+src/static/lib/
+docs
 .idea
 .vscode
 .git
-src/static/lib
-docs
