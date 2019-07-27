@@ -2,3 +2,5 @@ node_modules
 .idea
 .vscode
 .git
+src/static/lib
+docs

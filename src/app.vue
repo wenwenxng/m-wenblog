@@ -1,32 +1,34 @@
 <template>
     <div class="app-conteiner">
         <!--顶部 header区域 -->
-        <mt-header fixed title="wenblog">
-            <span slot="left" @click="goBack" v-show="flag">
-                <mt-button icon="back">返回</mt-button>
-            </span>
-        </mt-header>
+        <header class="my-header">
+            <div class="my-left">
+                <span v-show="flag" @click="goBack"><mt-button icon="back">返回</mt-button></span>
+            </div>
+            <h1><img src="./static/images/smalllogo.png" alt="">温星博客</h1>
+            <div class="my-right"></div>
+        </header>
         <!--中间路由 router-view区域 -->
         <transition>
             <router-view class="main-conteiner"></router-view>
         </transition>
         <!--底部 tabbar 区域 -->
-        <nav class="mui-bar mui-bar-tab">
+        <nav class="mui-bar mui-bar-tab" v-show="$store.getters.getShowTabbar">
             <router-link class="mui-tab-item-wen" to="/home">
                 <span class="mui-icon mui-icon-home"></span>
                 <span class="mui-tab-label">首页</span>
             </router-link>
-            <router-link class="mui-tab-item-wen" to="/member">
-                <span class="mui-icon mui-icon-contact"></span>
-                <span class="mui-tab-label">会员</span>
+            <router-link class="mui-tab-item-wen" to="/ly">
+                <span class="mui-icon mui-icon-chat"></span>
+                <span class="mui-tab-label">留言</span>
             </router-link>
-            <router-link class="mui-tab-item-wen" to="/cart">
-                <span class="mui-icon mui-icon-extra mui-icon-extra-cart"><span class="mui-badge" id="badge" v-show="$store.state.car.length">{{ $store.getters.getAllCount}}</span></span>
-                <span class="mui-tab-label">购物车</span>
+            <router-link class="mui-tab-item-wen" to="/about">
+                <span class="mui-icon mui-icon-info"></span>
+                <span class="mui-tab-label">关于</span>
             </router-link>
-            <router-link class="mui-tab-item-wen" to="/search">
-                <span class="mui-icon mui-icon-search" ></span>
-                <span class="mui-tab-label">搜索</span>
+            <router-link class="mui-tab-item-wen" to="/user">
+                <span class="mui-icon mui-icon-contact" ></span>
+                <span class="mui-tab-label">用户</span>
             </router-link>
         </nav>
 
@@ -49,31 +51,67 @@
         },
         watch:{
           '$route.path':function(newVal){
+              //显不显示返回键
               this.flag = newVal === '/home'? false : true;
+              //是否隐藏tabbar
+              if (newVal.indexOf('/home/articledetail/') !== -1) {
+                  //如果是看文章详情就是不显示底部四个东西
+                  this.$store.commit('changeShowTabbar',false)
+              }else{
+                  this.$store.commit('changeShowTabbar',true)
+              }
           }
         },
         created(){
-            this.$axios.get('/cart/queryCart').then(res=>{
-                if (res.data.error === 400){
-                    return
-                }
-                this.$store.commit('initCart',res.data)
-            })
             this.flag = this.$route.path === '/home'? false : true;
+            this.$store.commit('checkLogin')
+            if (this.$route.path.indexOf('/home/articledetail/') !== -1) {
+                //如果是看文章详情就是不显示底部四个东西
+                this.$store.commit('changeShowTabbar',false)
+            }else{
+                this.$store.commit('changeShowTabbar',true)
+            }
         }
     }
 </script>
 
 <style scoped lang="less">
-    .mint-header{
+    .my-header{
+        width: 100%;
+        position: fixed;
+        top:0;
+        left:0;
+        display: flex;
         z-index:99;
+        background-color:#fff;
+        color:#888;
+        height: 40px;
+        div{
+            flex:1;
+        }
+        .my-left button{
+            background: #fff;
+            box-shadow: none;
+            height: 40px;
+            line-height: 40px;
+        }
+        h1{
+            flex:1;
+            font-size: 18px;
+            line-height: 30px;
+            text-align: center;
+            img{
+                height: 30px;
+                vertical-align: -25%;
+            }
+        }
     }
     .app-conteiner{
         padding-top: 40px;
         padding-bottom: 50px;
     }
     .main-conteiner{
-        overflow-x:hidden;
+        /*overflow-x:hidden;*/
     }
     .mui-bar{
         box-shadow: 0 0 2px rgba(0,0,0,.2);

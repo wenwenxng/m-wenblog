@@ -5,23 +5,26 @@
         <swiper :lunbotuList="lunbotuList" :isfull="true"></swiper>
         <div class="mui-content">
             <ul class="mui-table-view mui-grid-view mui-grid-9">
-                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><router-link to="/home/newslist">
-                    <img src="../../images/menu1.png" alt="">
-                    <div class="mui-media-body">新闻资讯</div></router-link></li>
-                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><router-link to="/home/photoslist">
-                    <img src="../../images/menu2.png" alt="">
-                    <div class="mui-media-body">图片分享</div></router-link></li>
-                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><router-link to="/home/goodslist">
-                    <img src="../../images/menu3.png" alt="">
-                    <div class="mui-media-body">商品购买</div></router-link></li>
-                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">
-                    <img src="../../images/menu4.png" alt="">
-                    <div class="mui-media-body">留言反馈</div></a></li>
-                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">
-                    <img src="../../images/menu5.png" alt="">
+                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><router-link to="/home/study">
+                    <img src="../../static/images/menu/menu1.png" alt="">
+                    <div class="mui-media-body">交流学习</div></router-link></li>
+
+                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><router-link to="/home/funny">
+                    <img src="../../static/images/menu/menu2.png" alt="">
+                    <div class="mui-media-body">娱乐段子</div></router-link></li>
+
+                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><router-link to="/home/dream">
+                    <img src="../../static/images/menu/menu3.png" alt="">
+                    <div class="mui-media-body">心灵鸡汤</div></router-link></li>
+
+                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3" @click.prevent="handleNothing"><a href="#">
+                    <img src="../../static/images/menu/menu4.png" alt="">
+                    <div class="mui-media-body">图片分享</div></a></li>
+                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3" @click.prevent="handleNothing"><a href="#">
+                    <img src="../../static/images/menu/menu5.png" alt="">
                     <div class="mui-media-body">视频专区</div></a></li>
-                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">
-                    <img src="../../images/menu6.png" alt="">
+                <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3" @click.prevent="handleNothing"><a href="#">
+                    <img src="../../static/images/menu/menu6.png" alt="">
                     <div class="mui-media-body">联系我们</div></a></li>
             </ul>
         </div>
@@ -32,6 +35,7 @@
 
 <script>
     import swiper from '../subcomponents/swiper.vue'
+    import { Toast } from 'mint-ui'
     export default {
         name: "HomeContainer",
         data(){
@@ -44,19 +48,17 @@
         },
         methods:{
             getLunBoTu(){
-                this.$axios.get('product/queryProduct?page=1&pageSize=8').then((res) => {
+                this.$axios.get('/api/banner/queryBanner.php').then((res) => {
                     if (res.data.error){
                         return Toast("获取轮播图失败")
                     }
-                    res.data.data.forEach(function(item){
-                        if (!item.pic.length){
-                            item.pic = [{picAddr:'/images/static/detail6.jpg'}]
-                        }
-                    })
-                    this.lunbotuList= res.data.data
+                    this.lunbotuList= res.data
 
                 })
 
+            },
+            handleNothing(){
+                alert('该功能尚未开放')
             }
         },
         components:{

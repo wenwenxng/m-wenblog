@@ -8,67 +8,45 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 
 var store = new Vuex.Store({
-    state:{//this.$store.state.****
-        car:[]//将购物车中的商品的数据,用一个数组存储起来,在car数组中,存储一些商品的对象,我们可以把涉及购物车的商品对象都放在这,{id:商品的id,count:要购买的数量,price:商品的单价,selected:true}
-
+    state:{
+        user:'',
+        /*==========================删除线=====================*/
+        //baseURL:'http://192.168.31.98',
+        /*==========================删除线=====================*/
+        baseURL:'',
+        showTabbar:true,
     },
     mutations:{//this.$store.commit('',参数)
-        initCart(state,cartList){
-            cartList.forEach(item => {
-                item.selected = false;
-            })
-            state.car = cartList
-        },
-        updateCart(state,that){
-            //添加后update
-            that.loginAxiosGet('/cart/queryCart',function(res){
-                var maxId =  state.car.length?state.car[state.car.length]:0;
-                res.data.forEach(item => {
-                    if (item.id > maxId){
-                        item.selected = false;
-                        staate.car.push(item)
+        checkLogin(state){
+            axios.post('/api/user/checkLogin.php')
+                .then((res)=>{
+                    if (!res.data.error){
+                        state.user = res.data
                     }
                 })
-            })
         },
-        numChangeUpdateCart(state,info){
-            console.log(info)
-            var updateGoods = state.car.find(item => item.id === info.id)
-            updateGoods.num = info.num
+        userLogin(state,user){
+            state.user = user
         },
-        removeFromCar(state,index){
-            state.car.splice(index,1)
+        userRegister(state,user){
+            state.user = user
         },
-        updateGoodsSelected(state,info){
-            state.car[info.index].selected = info.val
+        userLogout(state){
+            state.user = ''
+        },
+        changeShowTabbar(state,flag){
+            state.showTabbar = flag
         }
     },
-    getters:{//this.$store.getters.****
-        getAllCount(state){
-            var sum = 0;
-            state.car.forEach(t => {
-                sum += t.num
-            })
-            return sum
+    getters:{
+        getUser(state){
+            return state.user
         },
-        getCar(state){
-            return state.car
+        getBaseUrl(state){
+            return state.baseURL
         },
-        getGoodsSelected(state){
-            return state.car
-        },
-        getGoodsCountAndAmount(state){
-            var o = {
-                num:0,
-                amount:0
-            }
-            state.car.forEach(item => {
-                if (item.selected){
-                    o.num += item.num;
-                    o.amount += item.price * item.num
-                }
-            })
-            return o
+        getShowTabbar(state){
+            return state.showTabbar
         }
     }
 })
@@ -76,8 +54,14 @@ var store = new Vuex.Store({
 //导入格式化时间的插件
 import moment from 'moment'
 //定义全局的过滤器
-Vue.filter('dateFormat',function(dateStr,pattern="YYYY-MM-DD HH:mm:ss"){
+Vue.filter('dateFormat',function(dateStr,pattern="YYYY-MM-DD"){
     return moment(dateStr).format(pattern)
+})
+//定义全局指令
+Vue.directive('focus', {
+    inserted:function(el){
+        el.focus()
+    }
 })
 //mint-ui模块
 // import { Toast,Header,Swipe, SwipeItem,Button,Lazyload} from 'mint-ui'
@@ -95,34 +79,36 @@ import 'mint-ui/lib/style.css'
 
 //axios模块
 import axios from 'axios';
-//上线的时候可以删除的两项
-axios.defaults.baseURL = 'http://192.168.31.98:5000';
-axios.defaults.withCredentials = true;
+//上线的时候可以删除的三项,都是为了解决跨域问题
+/*==========================删除线=====================*/
+// axios.defaults.baseURL = store.state.baseURL;
+// axios.defaults.withCredentials = true;
+/*==========================删除线=====================*/
+import qs from 'qs'
+axios.interceptors.request.use(function (config) {
+    config.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    if(config.method === 'post') { // post请求时，处理数据
+        config.data = qs.stringify( {
+            ...config.data //后台数据接收这块需要以表单形式提交数据，而axios中post默认的提交是json数据,所以这里选用qs模块来处理数据，也有其他处理方式，但个人觉得这个方式最简单好用
+        })
+    }
+    return config;
+}, function (error) {
+    loadinginstace.close()
+    return Promise.reject(error);
+})
+//添加响应拦截器
+axios.interceptors.response.use(function(response){
+    return response;
+},function(error){
+    return Promise.reject(error);
+});
 
 Vue.prototype.$axios = axios;
 
-Vue.prototype.loginAxiosGet=function(url,config,callback){
-    if (!callback){callback=config}
-    axios.get(url,config).then(res => {
-        if (res.data.error === 400){
-            return this.$router.push({path:'/login',query:{returnUrl:this.$route.path}})
-        }
-        callback(res)
-    })
-}
-Vue.prototype.loginAxiosPost = function(url,body,config,callback){
-    if (!callback){callback=config}
-    axios.post(url,body,config).then(res => {
-        if (res.data.error === 400){
-            return this.$router.push({path:'/login',query:{returnUrl:this.$route.path}})
-        }
-        callback(res)
-    })
-
-}
-import './lib/mui/dist/css/mui.min.css'
-import './lib/mui/dist/css/icons-extra.css'
-import './css/app.css'
+import './static/lib/mui/dist/css/mui.min.css'
+import './static/lib/mui/dist/css/icons-extra.css'
+import './static/css/app.css'
 import app from './app.vue'
 import router from './router.js'
 

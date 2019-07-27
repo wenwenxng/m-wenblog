@@ -1,121 +1,219 @@
 <template>
     <div class="comment-container">
-        <h3>发表评论</h3>
-        <div class="mui-content">
-        <textarea placeholder="请输入要BB的内容(最多吐槽120字)" maxlength="120" v-model="cmt"></textarea>
-        </div>
-        <mt-button type="primary" size="large" @click="postComment">发表评论</mt-button>
-        <div class="cmt-list" v-for="(item,index) in comments" :key="item.id">
-            <div class="cmt-item">
-                <div class="cmt-title" :class="{'cmt-title-active':item.id == id}">
-                    第{{ index + 1 }}楼&nbsp;&nbsp;用户:匿名用户&nbsp;&nbsp;发表时间:{{ item.updateTime | dateFormat}}
+        <h3 v-if="!ly">最新评论</h3>
+
+
+        <div class="cmt-list">
+            <div class="cmt-item excerpt"  v-for="(item,index) in comments.data" :key="item.com_id">
+                <div class="focus">
+                    <a href="javascript:;" class="thumbnail nothing" target="_blank">
+                        <img :src="item.user_img" ></a>
                 </div>
-                <div class="cmt-body">
-                    {{item.content}}
+                <header class="header">
+                    <h2>
+                        <a href="javascript:;" class="nothing">{{item.user_name}}</a></h2>
+                </header>
+
+                <p class="note" @tap="handleMulti({com_id:item.com_id,index:index,parent_user_name:item.user_name})">{{item.com_content}}</p>
+                <p class="interact">
+                    <span class="muted">
+            <i class="mui-icon-extra mui-icon-extra-like"></i></span>
+                </p>
+
+
+                <div class="multi_comment">
+
+                    <ul>
+
+
+                        <li class="multi_excerpt clearfix" v-for="(t,i) in item.com_multi.data" :key="t.com_multi_id">
+                            <div class="multi_focus">
+                                <a href="javascript:;" class="thumbnail nothing" target="_blank">
+                                    <img :src="t.user_img" ></a>
+                            </div>
+                            <header class="multi_header">
+                                <h2>
+                                    <a href="javascript:;" class="nothing">{{t.user_name}}</a></h2>
+                            </header>
+                            <p class="multi_note" @tap="handleMulti({com_id:item.com_id,com_parent_multi_id: t.user_id,parent_user_name:t.user_name,index:index})">{{t.parent_user_name?'回复@'+t.parent_user_name+':': ''}}{{t.com_multi_content}}</p>
+                            <p class="multi_interact">
+                                <span class="muted">
+                    <i class="mui-icon-extra mui-icon-extra-like"></i></span>
+                            </p>
+                        </li>
+                        <button class="getMulti" v-if="item.com_multi.count>3 && item.com_multi.data.length<item.com_multi.count" @tap="getMoreMulti(index)">展开更多评论</button>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <mt-button type="danger" size="large" plain @click="getMore">加载更多</mt-button>
     </div>
 </template>
 
 <script>
-    //有一个坑没填,当你一次性评论超过5条的时候,加载更多是不会出任何东西的.
-    import { Toast } from 'mint-ui';
+    import {Toast} from 'mint-ui';
+
     export default {
         name: "comment",
-        data(){
+        data() {
             return {
-                comments:[],
-                pageIndex:1,
-                cmt:''
+                cmt: '',
             }
         },
-        props:['id','bankuaiId'],
-        methods:{
-            getComments(flag){
-                this.$axios.get('comments/queryComments',{params: {page:this.pageIndex,pageSize:5,bankuaiId: this.bankuaiId,detailId:this.id}}).then((res) => {
-
-                    if (res.data.error){
-                        return Toast("获取评论失败")
-                    }
-
-                    if (!res.data.length && flag) {
-                        return Toast({
-                            message: '无更多评论',
-                            position: 'middle',
-                            duration: 3000
-                        })
-                    }
-                    console.log(res.data)
-                    //每当获取新评论数据逇时候,不要把老数据清空覆盖,而是应该以老数据拼接新数据
-                    res.data = res.data.filter(t1 =>
-                        this.comments.every(t2 => t1.id !== t2.id)
-                    )
-                    this.comments = this.comments.concat(res.data)
-                    // res.data.forEach( t => this.comments.push(t))
-
-                })
+        props: ['comments','ly'],
+        methods: {
+            getMoreMulti(index){
+                this.$emit('getMulti',index)
             },
-            getMore(){
-                this.pageIndex++
-                this.getComments(true)//第二次获取
-            },
-            postComment(){
-                //发表评论
-                if (this.cmt.trim().length === 0){
-                    return Toast('评论不能为空')
-                }
-                this.$axios.post('comments/addComment',{ content:this.cmt.trim(), bankuaiId:this.bankuaiId, detailId:this.id}).then((res) => {
-                    console.log(res)
-                    if (res.data.success !== true){
-                        return Toast('评论失败')
-                    }
-                    var comment = {
-                        id:this.comments.length?this.comments[0].id + 1: 1,
-                        updateTime:Date.now(),
-                        content:this.cmt.trim()
-                    }
-                    this.comments.unshift(comment)
-                    this.cmt = ''
-                })
+            handleMulti(obj){
+                this.$emit('handleSecondPostClick',obj)
+
             }
+
         },
-        created(){
-            this.getComments()
+        created() {
+
         }
     }
 </script>
 
 <style lang="less" scoped>
-.comment-container{
-    h3{
-        font-size: 18px;
-    }
-    textarea{
-        font-size: 14px;
-        height: 85px;
-        margin: 0;
-    }
-    .cmt-list{
-        margin: 5px 0;
-        .cmt-item{
-            font-size: 13px;
-            .cmt-title{
-                line-height: 30px;
-                background: #ccc;
+
+    .comment-container {
+        ul{
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        h3 {
+            font-size: 18px;
+        }
+        textarea {
+            font-size: 14px;
+            height: 85px;
+            margin: 0;
+        }
+        .cmt-list {
+            .excerpt {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+                position: relative;
+                .focus {
+                    float: left;
+                    margin-right: 20px;
+                    a {
+                        border-radius: 50%;
+                        overflow: hidden;
+                    }
+                    img {
+                        height: 40px;
+                    }
+                }
+                .header {
+                    margin: 5px 0;
+                    h2 {
+                        font-size: 16px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    a {
+                        font-size: 16px;
+                        font-weight: bold;
+                        text-align: left;
+                        color: #555;
+                        transition: all 0.3s ease;
+                    }
+                }
+                .note {
+                    font-size: 14px;
+                    color: #888;
+                    line-height: 23.333px;
+                    overflow: hidden;
+                }
+                .interact {
+                    position: absolute;
+                    right: 0;
+                    top: 20px;
+                    .muted {
+                        font-size: 14px;
+                        color: #aaa;
+                        margin-right: 15px;
+                        cursor: pointer;
+                        i{
+                            font-size: 14px;
+                        }
+                    }
+                }
             }
-            .cmt-title-active{
-                background: skyblue;
+
+            .multi_comment {
+                padding-left: 30px;
+                .multi_excerpt {
+                    position: relative;
+                    .multi_focus {
+                        float: left;
+                        margin-right: 20px;
+
+                    }
+                    .multi_focus{
+                        a{
+                            border-radius: 50%;
+                            overflow: hidden;
+                        }
+                    }
+                    .multi_focus img {
+                        height: 20px;
+                    }
+                    .multi_header {
+                        margin: 5px 0;
+                    }
+                    .multi_header {
+                        h2 {
+                            font-size: 14px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
+                        a {
+                            font-size: 14px;
+                            font-weight: bold;
+                            text-align: left;
+                            color: #555;
+                            transition: all 0.3s ease;
+                        }
+                    }
+                    .multi_note {
+                        font-size: 12px;
+                        color: #888;
+                        line-height: 23.333px;
+                        overflow: hidden;
+                    }
+                    .multi_interact {
+                        position: absolute;
+                        right: -10px;
+                        top: 10px;
+                    }
+                    .multi_interact .muted {
+                        font-size: 14px;
+                        color: #aaa;
+                        margin-right: 15px;
+                        cursor: pointer;
+                        i{
+                            font-size: 14px;
+                        }
+                    }
+                }
+                .getMulti{
+                    padding: 3px;
+                    font-size: 12px;
+                    background: skyblue;
+                    color: #fff;
+                }
             }
-            .cmt-body{
-                line-height: 35px;
-                text-indent: 2em;
-            }
+
         }
 
-    }
 
-}
+    }
 </style>
