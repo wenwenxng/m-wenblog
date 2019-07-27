@@ -11,9 +11,9 @@ var store = new Vuex.Store({
     state:{
         user:'',
         /*==========================删除线=====================*/
-        //baseURL:'http://192.168.31.98',
+        baseURL:'http://192.168.31.98',
         /*==========================删除线=====================*/
-        baseURL:'',
+        //baseURL:'',
         showTabbar:true,
     },
     mutations:{//this.$store.commit('',参数)
@@ -81,8 +81,8 @@ import 'mint-ui/lib/style.css'
 import axios from 'axios';
 //上线的时候可以删除的三项,都是为了解决跨域问题
 /*==========================删除线=====================*/
-// axios.defaults.baseURL = store.state.baseURL;
-// axios.defaults.withCredentials = true;
+axios.defaults.baseURL = store.state.baseURL;
+axios.defaults.withCredentials = true;
 /*==========================删除线=====================*/
 import qs from 'qs'
 axios.interceptors.request.use(function (config) {

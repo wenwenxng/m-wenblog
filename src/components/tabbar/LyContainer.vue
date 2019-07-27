@@ -11,7 +11,7 @@
             <p><span class="mui-icon mui-icon-compose"></span><input type="text" placeholder="我来评论..." @click="handlePostClick" class="write">
             </p>
         </div>
-        <login-box v-if="flag && !$store.getters.getUser"></login-box>
+        <login-box v-if="flag && !$store.getters.getUser" @hideLG="hideLG"></login-box>
         <post-comment v-if="flag && $store.getters.getUser" @hidePC="hidePC" @addComment="addComment" :com_info="com_info"></post-comment>
     </div>
 </template>
@@ -112,6 +112,9 @@
                 },200);
             },
             hidePC(){
+                this.flag = false
+            },
+            hideLG(){
                 this.flag = false
             },
             addComment(content,callback){

@@ -15,7 +15,7 @@
                 </div>
             </form>
         </div>
-        <div class="curtain"></div>
+        <div class="curtain" @tap="hideLG"></div>
     </div>
 </template>
 
@@ -39,7 +39,10 @@
                         }
                         this.$store.commit('userLogin',res.data)
                     })
-            }
+            },
+            hideLG(){
+                this.$emit('hideLG')
+            },
         },
         created(){
 
